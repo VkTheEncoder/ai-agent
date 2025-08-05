@@ -20,7 +20,8 @@ def get_retriever():
         exit()
 
     # Load embedding model
-    embedding_model = OpenAIEmbeddings()
+    # Load embedding model (using Ollama)
+    embedding_model = OllamaEmbeddings(model="llama2")
 
     # Determine if we need to create the vector DB
     is_first_time = not os.path.exists(DB_LOCATION)
