@@ -1,6 +1,6 @@
 # vector.py
 
-from langchain_ollama import OllamaEmbeddings
+from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 import os
@@ -20,7 +20,7 @@ def get_retriever():
         exit()
 
     # Load embedding model
-    embeddings = OllamaEmbeddings(model="mxbai-embed-large")
+    embedding_model = OpenAIEmbeddings()
 
     # Determine if we need to create the vector DB
     is_first_time = not os.path.exists(DB_LOCATION)
@@ -61,7 +61,7 @@ def get_retriever():
         vector_store = Chroma(
             collection_name=COLLECTION_NAME,
             persist_directory=DB_LOCATION,
-            embedding_function=embeddings
+            embedding_function=embedding_model,
         )
         vector_store.add_documents(documents=documents, ids=ids)
         print(f"✅ Indexed {len(documents)} documents from {len(csv_files)} files.")
@@ -71,7 +71,7 @@ def get_retriever():
         vector_store = Chroma(
             collection_name=COLLECTION_NAME,
             persist_directory=DB_LOCATION,
-            embedding_function=embeddings
+            embedding_function=embedding_model,
         )
 
     # ✅ Return retriever with MMR + k=10
