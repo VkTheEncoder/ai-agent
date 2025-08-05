@@ -8,3 +8,4 @@ pandas
 uvicorn
 uvicorn[standard]
 openai
+langchain-community
