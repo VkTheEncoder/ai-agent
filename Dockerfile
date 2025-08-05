@@ -1,14 +1,15 @@
 FROM python:3.10-slim
 
-# (optional) non-root user
-RUN useradd --create-home appuser
-WORKDIR /home/appuser/app
-USER appuser
 
 # copy & install dependencies
 COPY requirements.txt .
 RUN pip install --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
+
+# now that everything is bootstrapped, create and switch to a non-root user
+RUN useradd --create-home appuser
+WORKDIR /home/appuser/app
+USER appuser
 
 # copy your app code
 COPY . .
