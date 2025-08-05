@@ -1,20 +1,20 @@
-# Dockerfile
 FROM python:3.10-slim
 
-# set a non-root user (optional but recommended)
+# (optional) non-root user
 RUN useradd --create-home appuser
 WORKDIR /home/appuser/app
 USER appuser
 
-# copy and install python dependencies
+# copy & install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
 
-# copy app code
+# copy your app code
 COPY . .
 
-# expose the port FastAPI will run on
+# expose port (Render will override via $PORT)
 EXPOSE 8000
 
-# start the app with uvicorn
+# start uvicorn, binding to Render's port
 CMD ["sh","-c","uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
