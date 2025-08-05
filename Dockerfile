@@ -7,15 +7,17 @@ RUN pip install --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
 
 # now that everything is bootstrapped, create and switch to a non-root user
-RUN useradd --create-home appuser
-WORKDIR /home/appuser/app
-USER appuser
+
 
 # copy your app code
 COPY . .
 
 
-RUN chmod -R a+rwX ./chroma_learning_db
+RUN rm -rf chroma_learning_db
+
+RUN useradd --create-home appuser
+WORKDIR /home/appuser/app
+USER appuser
 # expose port (Render will override via $PORT)
 EXPOSE 8000
 
