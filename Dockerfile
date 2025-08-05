@@ -1,26 +1,39 @@
-# 1. Base image
-FROM python:3.10-slim
+# Dockerfile
+FROM ubuntu:22.04
 
-# 2. Install Python deps as root
+##### 1. Install system deps & Ollama CLI #####
+RUN apt-get update \
+ && apt-get install -y curl ca-certificates python3 python3-pip \
+ && rm -rf /var/lib/apt/lists/*
+
+# Download & install Ollama (adjust version as needed)
+RUN curl -sSL \
+    https://github.com/ollama/ollama/releases/download/v0.0.26/ollama_0.0.26_linux_amd64.tar.gz \
+  | tar xz -C /usr/local/bin
+
+# Pull the model you want (e.g. "llama2")
+RUN ollama pull llama2
+
+##### 2. Install your Python app #####
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --upgrade pip \
- && pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# 3. Copy your code (still as root)
 COPY . .
 
-# 4. Remove the checked-in, read-only Chroma DB so it can be re-created at runtime
-RUN rm -rf chroma_learning_db
+##### 3. Entrypoint: start Ollama & Uvicorn #####
+# Create a tiny startup script
+RUN printf '#!/bin/sh\n\
+set -e\n\
+# 1) launch Ollama server in background\n\
+ollama serve --listen 0.0.0.0:11434 &\n\
+# 2) wait a moment for it to spin up\n\
+sleep 2\n\
+# 3) launch your FastAPI app\n\
+exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}\n' \
+> /app/entrypoint.sh \
+ && chmod +x /app/entrypoint.sh
 
-# 5. Now create a non-root user, fix ownership, and switch
-RUN useradd --create-home appuser \
- && chown -R appuser:appuser /app
-USER appuser
-WORKDIR /app
+EXPOSE 8000 11434
 
-# 6. Expose port (Render will override via $PORT)
-EXPOSE 8000
-
-# 7. Start Uvicorn binding to Render’s $PORT
-CMD ["sh","-c","uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+ENTRYPOINT ["/app/entrypoint.sh"]
