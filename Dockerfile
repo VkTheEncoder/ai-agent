@@ -26,11 +26,11 @@ COPY . .
 RUN printf '#!/bin/sh\n\
 set -e\n\
 echo "Starting Ollama…"\n\
-ollama serve --listen 0.0.0.0:11434 &\n\
-# wait for Ollama to be ready\n\
+# bind Ollama to 0.0.0.0 by env var (default port 11434)\n\
+export OLLAMA_HOST="0.0.0.0:11434"\n\
+# serve llama2 directly (auto-pulls if needed)\n\
+ollama serve llama2 &\n\
 sleep 5\n\
-echo "Pulling llama2 model (no-op if cached)…"\n\
-ollama pull llama2 || true\n\
 echo "Starting FastAPI…"\n\
 exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}\n' \
  > /app/entrypoint.sh \
