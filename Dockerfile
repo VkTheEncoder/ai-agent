@@ -14,9 +14,10 @@ USER appuser
 # copy your app code
 COPY . .
 
+
+RUN chmod -R a+rwX ./chroma_learning_db
 # expose port (Render will override via $PORT)
 EXPOSE 8000
 
-RUN chmod -R a+rwX ./chroma_learning_db
 # start uvicorn, binding to Render's port
 CMD ["sh","-c","uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
